@@ -1,0 +1,51 @@
+import requests,os,time
+from fake_useragent import UserAgent
+from lxml import etree
+if not os.path.exists('D:/图片'):
+    os.mkdir('D:/图片')
+print('查看图片的网址如下，请输入想要查看的图片类型以及页码：https://pic.netbian.com/4kbeijing/')
+print('请输入想要的图片类型编号：风景：1，游戏：2，美女：3，影视：4，动漫：5，明星：6，汽车：7，动物：8，人物：9')
+dict_type={'1':'风景','2':'游戏','3':'美女','4':'影视','5':'动漫','6':'明星','7':'汽车','8':'动物','9':'人物'}
+dict_value=dict_type.values()
+
+type_num=int(input('请输入编号：'))
+a=int(input('请输入首页：'))
+b=int(input('请输入尾页；'))
+type_dic={'1':'fengjing','2':'youxi','3':'meinv','4':'yingshi','5':'dongman','6':'mingxing','7':'qiche','8':'dongwu','9':'renwu'}
+value=type_dic.values()
+num1=list(dict_value)[type_num-1]
+def gethtml(url):
+    global headers
+    headers={'user-agent':UserAgent().random}
+    response=requests.get(url,headers=headers)
+    html=response.text
+    return html
+
+for i in range(a-1,b):
+    if not os.path.exists(f'D:/图片/{num1} 第{i+1}页'):
+        os.mkdir(f'D:/图片/{num1} 第{i+1}页')
+    num = list(value)[type_num-1]
+
+
+    if a==1:
+        url=f'https://pic.netbian.com/4k{num}/'
+    else:
+        url=f'https://pic.netbian.com/4k{num}/index_{i+1}.html'
+
+
+
+    html=gethtml(url)
+    tree=etree.HTML(html)
+    li_list=tree.xpath('//*[@id="main"]/div[3]/ul/li')
+    for li in li_list:
+        name=li.xpath('./a/img/@alt')[0]+'.jpg'
+        name=name.encode('iso-8859-1').decode('gbk')
+        src='http://pic.netbian.com/'+li.xpath('./a/img/@src')[0]
+        data=requests.get(url=src,headers=headers).content
+        path = f'D:/图片/{num1} 第{i+1}页/' + name
+        with open(path,'wb') as fp:
+            fp.write(data)
+            print(name,'爬取成功 ')
+            time.sleep(0.3)
+    print(f'第{i+1}页爬取成功')
+print(r"图片保存完毕，请前往'D:/图片'查看"
